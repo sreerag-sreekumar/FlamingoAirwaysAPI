@@ -93,7 +93,7 @@ namespace FlamingoAirwaysAPI.Models
             [ForeignKey("Bookings")]
             public int BookingIdF { get; set; }
             [Required]
-            [StringLength(5)]
+            [StringLength(50)]
             public string SeatNumber { get; set; }
             [Required]
             [StringLength(50)]
@@ -127,6 +127,12 @@ namespace FlamingoAirwaysAPI.Models
             [DataType(DataType.Currency)]
             [Column(TypeName = "decimal(18, 2)")] // Adjust based on your needs
             public decimal Amount { get; set; }
+
+            //[Required]
+            [DataType(DataType.Currency)]
+            [Column(TypeName = "decimal(18, 2)")]
+            public decimal Retainer { get; set; }
+
             public Booking Bookings { get; set; }
         }
     }

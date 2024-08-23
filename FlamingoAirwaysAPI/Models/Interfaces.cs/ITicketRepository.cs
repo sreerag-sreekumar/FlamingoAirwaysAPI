@@ -1,15 +1,15 @@
-﻿using static FlamingoAirwaysAPI.Models.FlamingoAirwaysModel;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using static FlamingoAirwaysAPI.Models.FlamingoAirwaysModel;
 
-namespace FlamingoAirwaysAPI.Models.Interfaces.cs
+namespace FlamingoAirwaysAPI.Models
 {
     public interface ITicketRepository
-
     {
-        Task<Ticket> GetTicketById(int id);
-        Task<IEnumerable<Ticket>> GetAllTicket();
-        Task AddTicket(Ticket ticket);
-        Task UpdateTicket(Ticket ticket);
-        Task RemoveTicket(Ticket ticket);
+        Task<IEnumerable<Ticket>> GetByBookingIdAsync(int bookingId);
+        Task AddAsync(Ticket ticket);
+        Task DeleteAsync(int ticketId); // New method for deleting a ticket
+        Task UpdateAsync (Ticket ticket);   
+        Task<Ticket> GetByBookingIdAndTicketIdAsync(int bookingId, int ticketId);
     }
-
 }

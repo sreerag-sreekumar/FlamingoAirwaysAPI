@@ -1,36 +1,60 @@
-﻿using FlamingoAirwaysAPI.Models.Interfaces.cs;
-using static FlamingoAirwaysAPI.Models.FlamingoAirwaysModel;
+﻿using FlamingoAirwaysAPI.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using static FlamingoAirwaysAPI.Models.FlamingoAirwaysDbContext;
+using static FlamingoAirwaysAPI.Models.FlamingoAirwaysModel;
 
 namespace FlamingoAirwaysAPI.Models
 {
     public class TicketRepository : ITicketRepository
     {
-        public Task AddTicket(Ticket ticket)
+        private readonly FlamingoAirwaysDB _context;
+
+        public TicketRepository(FlamingoAirwaysDB context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task<IEnumerable<Ticket>> GetAllTicket()
+        public async Task<IEnumerable<Ticket>> GetByBookingIdAsync(int bookingId)
         {
-            throw new NotImplementedException();
+            return await _context.Tickets
+                .Where(t => t.BookingIdF == bookingId)
+                .ToListAsync();
         }
 
-        public Task<Ticket> GetTicketById(int id)
+        public async Task AddAsync(Ticket ticket)
         {
-            throw new NotImplementedException();
+            await _context.Tickets.AddAsync(ticket);
+            await _context.SaveChangesAsync();
         }
 
-        public Task RemoveTicket(Ticket ticket)
+        public async Task DeleteAsync(int ticketId)
         {
-            throw new NotImplementedException();
+            var ticket = await _context.Tickets.FindAsync(ticketId);
+            if (ticket != null)
+            {
+                _context.Tickets.Remove(ticket);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public Task UpdateTicket(Ticket ticket)
+        public async Task<Ticket> GetByBookingIdAndTicketIdAsync(int bookingId, int ticketId)
         {
-            throw new NotImplementedException();
+            return await _context.Tickets
+                         .FirstOrDefaultAsync(t => t.BookingIdF == bookingId && t.TicketId == ticketId);
         }
+
+        public async Task UpdateAsync(Ticket ticket)
+
+        {
+
+            _context.Tickets.Update(ticket);
+
+            await _context.SaveChangesAsync();
+
+        }
+
     }
-
-
 }

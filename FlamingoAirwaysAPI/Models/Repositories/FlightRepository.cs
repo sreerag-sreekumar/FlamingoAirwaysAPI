@@ -1,6 +1,4 @@
-﻿using FlamingoAirwaysAPI.Models.Interfaces.cs;
-using FlamingoAirwaysAPI.Models;
-using static FlamingoAirwaysAPI.Models.FlamingoAirwaysDbContext;
+﻿using static FlamingoAirwaysAPI.Models.FlamingoAirwaysDbContext;
 using static FlamingoAirwaysAPI.Models.FlamingoAirwaysModel;
 using Microsoft.EntityFrameworkCore;
 
@@ -64,5 +62,57 @@ namespace FlamingoAirwaysAPI.Models
 
             //throw new NotImplementedException();
         }
+
+        public async Task UpdateFlight1(Flight flight)
+        {
+            _context.Flights.Update(flight);
+            await _context.SaveChangesAsync();
+            //throw new NotImplementedException();
+        }
+
+        public async Task<Flight> GetByBookingIdAsync(int bookingId)
+
+        {
+
+            var bookingX = _context.Bookings.Find(bookingId);
+
+            var FlightIdX = bookingX.FlightIdFK;
+
+            return await _context.Flights
+
+                     .SingleOrDefaultAsync(f => f.FlightId == FlightIdX);
+
+        }
+
+
+        public async Task UpdateAsync(Flight flight)
+
+        {
+
+            _context.Flights.Update(flight);
+
+            await _context.SaveChangesAsync();
+
+        }
+
+
+        public async Task DeleteAsync(int id)
+        {
+            var flight = await _context.Flights.FindAsync(id);
+            if (flight != null)
+            {
+                _context.Flights.Remove(flight);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<Flight> GetByIdAsync(int id)
+
+        {
+
+            return await _context.Flights.FindAsync(id);
+
+        }
+
     }
 }

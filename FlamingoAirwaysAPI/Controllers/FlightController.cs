@@ -1,11 +1,12 @@
 ﻿using FlamingoAirwaysAPI.Models;
 
-using FlamingoAirwaysAPI.Models.Interfaces;
-
 using Microsoft.AspNetCore.Mvc;
 
 using static FlamingoAirwaysAPI.Models.FlamingoAirwaysModel;
-using FlamingoAirwaysAPI.Models.Interfaces.cs;
+using Microsoft.EntityFrameworkCore;
+using System.Net;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -34,8 +35,9 @@ namespace FlamingoAirwaysAPI.Controllers
         // GET: api/<FlamingoAirwaysController>
 
         [HttpGet]
+        [AllowAnonymous]
 
-        public async Task<ActionResult<List<FlamingoAirwaysModel>>> ShowAll()
+        public async Task<ActionResult<List<FlamingoAirwaysModel>>> ShowAllFlights()
         {
             var flights = await _repo.GetAllFlights();
             return Ok(flights);
@@ -44,6 +46,7 @@ namespace FlamingoAirwaysAPI.Controllers
 
         // GET: api/Flight
         [HttpGet("origin/destination")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<IEnumerable<Flight>>> GetFlights([FromQuery] string origin, [FromQuery] string destination, [FromQuery] DateTime departureDate)
         {
             var flights = await _repo.SearchFlightsAsync(origin, destination, departureDate);
@@ -52,6 +55,7 @@ namespace FlamingoAirwaysAPI.Controllers
         // GET api/<FlamingoAirwaysController>/5
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
 
         public async Task<ActionResult<FlamingoAirwaysModel>> FindFlight(int id)
         {
@@ -66,21 +70,16 @@ namespace FlamingoAirwaysAPI.Controllers
         // POST api/<FlamingoAirwaysController>
 
         [HttpPost]
-
-        public async Task<IActionResult> Post([FromBody] Flight value)
+        [Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> Create([FromBody] Flight value)
 
         {
-
             if (value == null)
 
             {
-
                 return BadRequest();
-
             }
-
             await _repo.AddFlight(value);
-
             return Ok();
 
         }
@@ -88,22 +87,58 @@ namespace FlamingoAirwaysAPI.Controllers
         // PUT api/<FlamingoAirwaysController>/5
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Flight value)
-        {
+        [Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 
-            var existingFlight = await _repo.GetFlightById(id);
+        public async Task<IActionResult> PutFlight(int id, [FromBody] Flight flight)
+
+        {
+            // Check if the flight object is null
+            if (flight == null)
+            {
+                return BadRequest("Flight data cannot be null.");
+            }
+            // Check if the ID in the URL matches the ID in the flight object
+            if (id <= 0)
+            {
+                return BadRequest("Invalid flight ID.");
+            }
+            //if (id != flight.FlightId)
+            //{
+            //    return BadRequest("Flight ID mismatch.");
+            //}
+            // Fetch the existing flight from the database
+            var existingFlight = await _repo.GetByIdAsync(id);
             if (existingFlight == null)
             {
-                return NotFound();
+                return NotFound($"Flight with ID {id} not found.");
             }
-
-            await _repo.UpdateFlight(id,value);
+            // Update the existing flight with new data
+            existingFlight.Origin = flight.Origin;
+            existingFlight.Destination = flight.Destination;
+            existingFlight.DepartureDate = flight.DepartureDate;
+            existingFlight.ArrivalDate = flight.ArrivalDate;
+            existingFlight.Price = flight.Price;
+            existingFlight.TotalNumberOfSeats = flight.TotalNumberOfSeats;
+            existingFlight.AvailableSeats = flight.AvailableSeats;
+            // Save changes to the database
+            try
+            {
+                await _repo.UpdateAsync(existingFlight);
+            }
+            catch (DbUpdateException ex)
+            {
+                // Log the exception details and return a server error
+                Console.WriteLine($"Error updating flight: {ex.Message}");
+                return StatusCode(500, "An error occurred while updating the flight.");
+            }
+            // Return a no-content response to indicate successful update
             return NoContent();
         }
 
         // DELETE api/<FlamingoAirwaysController>/5
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> Delete(int id)
         {
             var existingFlight = await _repo.GetFlightById(id);

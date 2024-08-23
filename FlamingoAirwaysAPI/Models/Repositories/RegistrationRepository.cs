@@ -1,20 +1,19 @@
-﻿using FlamingoAirwaysAPI.Models.Interfaces;
-using FlamingoAirwaysAPI.Models.Interfaces.cs;
+﻿using FlamingoAirwaysAPI.Models;
 using static FlamingoAirwaysAPI.Models.FlamingoAirwaysDbContext;
 using static FlamingoAirwaysAPI.Models.FlamingoAirwaysModel;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace FlamingoAirwaysAPI.Models.Repositories
+namespace FlamingoAirwaysAPI.Models
 {
-    public class UserRepository : IUserRepository
+    public class RegistrationRepository : IRegistrationRepository
     {
 
         FlamingoAirwaysDB _context;
 
-        public UserRepository(FlamingoAirwaysDB context)
+        public RegistrationRepository(FlamingoAirwaysDB context)
         {
-            context = _context;
+            _context = context;
         }
         public async Task AddUser(User user)
         {
@@ -29,11 +28,24 @@ namespace FlamingoAirwaysAPI.Models.Repositories
             //throw new NotImplementedException();
         }
 
+        public async Task<IEnumerable<User>> GetLogin(string email, string password)
+        {
+            return await _context.Users
+                .Where(u => u.Email == email && u.Password==password)
+                .ToListAsync();
+            //throw new NotImplementedException();
+        }
+
         public async Task<IEnumerable<User>> GetUserByEmail(string email)
         {
             return await _context.Users
                 .Where(u => u.Email == email)
                 .ToListAsync();
+        }
+
+        public async Task<User> GetUserIDbyEmail(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<User> GetUserById(int id)
